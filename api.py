@@ -4,6 +4,7 @@ import psycopg2
 from psycopg2.extras import DictCursor
 import os
 from dotenv import load_dotenv
+from core_functions import *
 
 # Load environment variables
 load_dotenv()
@@ -27,10 +28,22 @@ def get_db_connection():
 def init_db():
     conn = get_db_connection()
     cur = conn.cursor()
+    # Create requested_features table first (referenced by feedbacks)
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS requested_features (
+        id SERIAL PRIMARY KEY,
+        feedback_id TEXT,
+        feature_code TEXT NOT NULL,
+        reason TEXT NOT NULL,
+        FOREIGN KEY (feedback_id) REFERENCES feedbacks(id)
+    )
+    ''')
+    # Update feedbacks table to include sentiment
     cur.execute('''
     CREATE TABLE IF NOT EXISTS feedbacks (
         id TEXT PRIMARY KEY,
         feedback TEXT NOT NULL,
+        sentiment TEXT CHECK (sentiment IN ('POSITIVO', 'NEGATIVO')),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')
@@ -52,18 +65,30 @@ def create_feedback():
         'feedback': request.json['feedback']
     }
     
-    # Insert feedback into the database
     try:
+        # Analyze feedback using LLM
+        analysis_result = analyze_feedback_langchain(feedback_data['feedback'], feedback_data['id'])
+        
         conn = get_db_connection()
         cur = conn.cursor()
+        
+        # Insert main feedback with sentiment
         cur.execute(
-            'INSERT INTO feedbacks (id, feedback) VALUES (%s, %s)',
-            (feedback_data['id'], feedback_data['feedback'])
+            'INSERT INTO feedbacks (id, feedback, sentiment) VALUES (%s, %s, %s)',
+            (feedback_data['id'], feedback_data['feedback'], analysis_result['sentiment'])
         )
+        
+        # Insert requested features
+        for feature in analysis_result['requested_features']:
+            cur.execute(
+                'INSERT INTO requested_features (feedback_id, feature_code, reason) VALUES (%s, %s, %s)',
+                (feedback_data['id'], feature['code'], feature['reason'])
+            )
+        
         conn.commit()
         cur.close()
         conn.close()
-        return jsonify({'message': 'Feedback received successfully'}), 201
+        return jsonify({'message': 'Feedback processed and stored successfully'}), 201
     except psycopg2.IntegrityError:
         return jsonify({'error': 'Feedback with this ID already exists'}), 409
     except Exception as e:
