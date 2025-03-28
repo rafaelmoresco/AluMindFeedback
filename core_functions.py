@@ -43,4 +43,26 @@ def analyze_feedback_langchain(feedback, id):
     result = json.loads(chain_result)
     return result
 
+# Function to filter spam feedback
+def spam_filter(feedback: str) -> bool:
+    prompt_template = """
+    A AluMind é uma startup que oferece um aplicativo focado em bem-estar e saúde mental, 
+    proporcionando aos usuários acesso a meditações guiadas, sessões de terapia, e conteúdos educativos sobre saúde mental.
 
+    Você é um assistente de análise de feedbacks da AluMind. Sua tarefa é avaliar o seguinte feedback de usuário e determinar se ele é válido, ou seja, se é coerente, construtivo e relevante. 
+    
+    Se o feedback for válido, responda apenas com a letra "Y". 
+    Se o feedback for considerado spam, irrelevante ou inválido, responda apenas com a letra "N".
+    
+    Feedback: "{feedback}"
+    """
+    prompt = PromptTemplate(template=prompt_template, input_variables=["feedback"])
+    
+    llm = OpenAI(model_name="gpt-3.5-turbo", openai_api_key=openai_api_key)
+    
+    result = llm(prompt.format(feedback=feedback)).strip()
+    
+    if result.upper() == "Y":
+        return True
+    else:
+        return False

@@ -67,7 +67,10 @@ def create_feedback():
     
     try:
         # Analyze feedback using LLM
-        analysis_result = analyze_feedback_langchain(feedback_data['feedback'], feedback_data['id'])
+        if spam_filter(feedback_data['feedback']):
+            analysis_result = analyze_feedback_langchain(feedback_data['feedback'], feedback_data['id'])
+        else:
+            return jsonify({'error': 'Feedback is spam'}), 400
         
         conn = get_db_connection()
         cur = conn.cursor()
