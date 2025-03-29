@@ -1,7 +1,6 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect
 from flask_cors import CORS
 from dotenv import load_dotenv
-from core_functions import *
 from src.utils.config import load_config
 from src.database.database import *
 from src.analysis.analysis import *
@@ -17,6 +16,16 @@ CORS(app)
 
 # Initialize the database on startup
 init_db()
+
+# Redirect endpoint
+@app.route('/')
+def tohome():
+    return redirect("/dashboard", code=302)
+
+# Error handler endpoint
+@app.errorhandler(404)
+def page_not_found():
+    return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
 # Create feedback endpoint
 @app.route('/feedbacks', methods=['POST'])
