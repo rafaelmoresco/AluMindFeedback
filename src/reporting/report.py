@@ -151,7 +151,8 @@ def generate_weekly_report():
         feature_requests=json.dumps(report_data['feature_requests'], indent=2, ensure_ascii=False)
     )
     
-    report_html = llm.invoke(formatted_prompt)
+    # Extract content from AIMessage
+    report_html = llm.invoke(formatted_prompt).content
     
     return report_html
 

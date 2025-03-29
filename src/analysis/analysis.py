@@ -36,7 +36,8 @@ def analyze_feedback_langchain(feedback, id):
     formatted_prompt = prompt.format(feedback=feedback, id=id)
     chain_result = llm.invoke(formatted_prompt)
     
-    result = json.loads(chain_result)
+    # Extract content from AIMessage before parsing JSON
+    result = json.loads(chain_result.content)
     return result
 
 # Function to filter spam feedback
@@ -59,9 +60,11 @@ def spam_filter(feedback: str) -> bool:
         api_key=get_openai_key()
     )
     
-    result = llm.invoke(prompt.format(feedback=feedback)).strip()
+    result = llm.invoke(prompt.format(feedback=feedback))
+    # Extract the content from the AIMessage object
+    result_text = result.content.strip()
     
-    if result.upper() == "Y":
+    if result_text.upper() == "Y":
         return True
     else:
         return False
