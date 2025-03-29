@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import DictCursor
@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from core_functions import *
 
 # Load environment variables
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 app = Flask(__name__)
 
@@ -28,6 +28,17 @@ def get_db_connection():
 def init_db():
     conn = get_db_connection()
     cur = conn.cursor()
+
+    # Create feedbacks table
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS feedbacks (
+        id TEXT PRIMARY KEY,
+        feedback TEXT NOT NULL,
+        sentiment TEXT CHECK (sentiment IN ('POSITIVO', 'NEGATIVO')),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+    
     # Create requested_features table first (referenced by feedbacks)
     cur.execute('''
     CREATE TABLE IF NOT EXISTS requested_features (
@@ -36,15 +47,6 @@ def init_db():
         feature_code TEXT NOT NULL,
         reason TEXT NOT NULL,
         FOREIGN KEY (feedback_id) REFERENCES feedbacks(id)
-    )
-    ''')
-    # Update feedbacks table to include sentiment
-    cur.execute('''
-    CREATE TABLE IF NOT EXISTS feedbacks (
-        id TEXT PRIMARY KEY,
-        feedback TEXT NOT NULL,
-        sentiment TEXT CHECK (sentiment IN ('POSITIVO', 'NEGATIVO')),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')
     conn.commit()
@@ -101,6 +103,26 @@ def create_feedback():
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'ok'}), 200
+
+@app.route('/dashboard', methods=['GET'])
+def dashboard():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=DictCursor)
+    
+    # Query to get count of feedbacks by sentiment
+    cur.execute("SELECT sentiment, COUNT(*) as count FROM feedbacks GROUP BY sentiment;")
+    sentiment_data = cur.fetchall()
+    sentiment_summary = [{'sentiment': row['sentiment'], 'count': row['count']} for row in sentiment_data]
+    
+    # Query to get a detailed list of feedbacks (ordered by creation time)
+    cur.execute("SELECT id, feedback, sentiment, created_at FROM feedbacks ORDER BY created_at DESC;")
+    feedbacks = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    
+    return render_template("dashboard.html", sentiment_summary=sentiment_summary, feedbacks=feedbacks)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
