@@ -22,11 +22,24 @@ def generate_weekly_report():
     
     # Get sentiment summary
     cur.execute("""
-        SELECT sentiment, COUNT(*) as count 
+        WITH sentiment_counts AS (
+            SELECT COUNT(*) as total_decisive
+            FROM feedbacks 
+            WHERE created_at >= %s
+            AND sentiment IN ('POSITIVO', 'NEGATIVO')
+        )
+        SELECT 
+            sentiment, 
+            COUNT(*) as count,
+            CASE 
+                WHEN sentiment IN ('POSITIVO', 'NEGATIVO') THEN
+                    CAST((COUNT(*)::float * 100 / NULLIF((SELECT total_decisive FROM sentiment_counts), 0)) AS DECIMAL(5,1))
+                ELSE NULL
+            END as percentage
         FROM feedbacks 
-        WHERE created_at >= %s 
+        WHERE created_at >= %s
         GROUP BY sentiment
-    """, (seven_days_ago,))
+    """, (seven_days_ago, seven_days_ago))
     sentiment_data = cur.fetchall()
     
     # Get feature requests summary
@@ -74,7 +87,14 @@ def generate_weekly_report():
     Funcionalidades solicitadas:
     {feature_requests}
     
-    Por favor, preencha o seguinte template HTML, mantendo sua estrutura e substituindo apenas o conteúdo entre colchetes []:
+    Por favor, preencha o template HTML abaixo, seguindo estas diretrizes específicas:
+    1. Na análise geral, inclua OBRIGATORIAMENTE:
+       - O número total de feedbacks
+       - A porcentagem exata de cada tipo de sentimento (Positivo, Negativo e Inconclusivo)
+       - Uma análise da proporção entre feedbacks positivos e negativos
+    2. Na análise de sentimentos, destaque:
+       - Se houver feedbacks inconclusivos, analise possíveis razões para a ambiguidade
+       - Como a distribuição dos sentimentos pode impactar as decisões do produto
     
     <html>
     <head>
@@ -85,6 +105,7 @@ def generate_weekly_report():
         .section { margin-bottom: 30px; }
         .positive { color: #28a745; }
         .negative { color: #dc3545; }
+        .neutral { color: #6c757d; }
         .highlight { background-color: #fff3cd; padding: 10px; border-radius: 5px; }
         .metric { font-size: 1.2em; font-weight: bold; }
     </style>
@@ -99,13 +120,13 @@ def generate_weekly_report():
         
         <div class="section">
             <h2>Análise Geral do Período</h2>
-            <p>[Insira aqui um parágrafo resumindo a análise geral do período, destacando as principais tendências]</p>
+            <p>[Insira aqui um parágrafo detalhado com as porcentagens exatas de cada tipo de sentimento e a análise das proporções]</p>
         </div>
         
         <div class="section">
             <h2>Análise de Sentimentos</h2>
             <div class="highlight">
-                [Insira aqui a análise detalhada dos sentimentos, usando as classes 'positive' e 'negative' para destacar os pontos relevantes]
+                [Insira aqui a análise detalhada dos sentimentos, usando as classes 'positive', 'negative' e 'neutral' para destacar os pontos relevantes. Inclua análise dos feedbacks inconclusivos.]
             </div>
         </div>
         
@@ -119,7 +140,7 @@ def generate_weekly_report():
         <div class="section">
             <h2>Recomendações</h2>
             <ol>
-                [Insira aqui 3-5 recomendações baseadas na análise dos dados, focando nas funcionalidades mais solicitadas]
+                [Insira aqui 3-5 recomendações baseadas na análise dos dados, focando nas funcionalidades mais solicitadas e nos insights dos feedbacks inconclusivos]
             </ol>
         </div>
         

@@ -13,7 +13,7 @@ def analyze_feedback_langchain(feedback, id):
 
     Analise o seguinte feedback do aplicativo AluMind: "{feedback}"
     
-    Identifique o sentimento como "POSITIVO" ou "NEGATIVO" e extraia a funcionalidade mais importante solicitada (caso exista).
+    Identifique o sentimento como "POSITIVO", "NEGATIVO" ou "INCONCLUSIVO" (quando não for possível determinar claramente) e extraia a funcionalidade mais importante solicitada (caso exista).
     "feature_code" consiste em um código de até duas palavras escrito em letras maiusculas, que representa o que o cliente mais deseja.
     "feature_reason" consiste em uma frase curta e direta explicando o que o cliente deseja no código associado.
     
@@ -21,7 +21,7 @@ def analyze_feedback_langchain(feedback, id):
     
     {{
       "id": "{id}",
-      "sentiment": "<POSITIVO ou NEGATIVO>",
+      "sentiment": "<POSITIVO, NEGATIVO ou INCONCLUSIVO>",
       "feature_code": "<Código ou null se não houver solicitação>",
       "feature_reason": "<Motivo ou null se não houver solicitação>"
     }}

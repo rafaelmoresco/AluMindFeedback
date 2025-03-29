@@ -9,7 +9,7 @@ CREATE USER admin WITH PASSWORD 'temp123';
 CREATE TABLE feedbacks (
     id TEXT PRIMARY KEY,
     feedback TEXT NOT NULL,
-    sentiment TEXT CHECK (sentiment IN ('POSITIVO', 'NEGATIVO')),
+    sentiment TEXT CHECK (sentiment IN ('POSITIVO', 'NEGATIVO', 'INCONCLUSIV')),
     feature_code TEXT,
     feature_reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

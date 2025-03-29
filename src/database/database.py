@@ -23,7 +23,7 @@ def init_db():
     CREATE TABLE IF NOT EXISTS feedbacks (
         id TEXT PRIMARY KEY,
         feedback TEXT NOT NULL,
-        sentiment TEXT CHECK (sentiment IN ('POSITIVO', 'NEGATIVO')),
+        sentiment TEXT CHECK (sentiment IN ('POSITIVO', 'NEGATIVO', 'INCONCLUSIVO')),
         feature_code TEXT,
         feature_reason TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
