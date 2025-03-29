@@ -2,10 +2,14 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from dotenv import load_dotenv
 from core_functions import *
+from src.utils.config import load_config
+from src.database.database import *
+from src.analysis.analysis import *
+from src.reporting.report import schedule_weekly_report
 import threading
 
-# Load environment variables
-load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+# Load configuration
+load_config()
 
 app = Flask(__name__)
 
