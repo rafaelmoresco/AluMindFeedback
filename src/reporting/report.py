@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from src.database.database import get_db_connection
-from langchain_community.llms import OpenAI
+from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from src.utils.config import get_openai_key
 from psycopg2.extras import DictCursor
@@ -63,7 +63,7 @@ def generate_weekly_report():
     prompt_template = """
     Você é um analista especializado em feedback de usuários da AluMind, uma startup que oferece um aplicativo focado em bem-estar e saúde mental.
     
-    Gere um relatório semanal em formato HTML baseado nos seguintes dados:
+    Analise os seguintes dados e preencha o template HTML abaixo com suas análises:
     
     Período: {start_date} até {end_date}
     Total de feedbacks: {total_feedbacks}
@@ -74,15 +74,62 @@ def generate_weekly_report():
     Funcionalidades mais solicitadas:
     {feature_requests}
     
-    Por favor, gere um relatório profissional que inclua:
-    1. Uma análise geral do período
-    2. Insights sobre os sentimentos dos usuários
-    3. Recomendações baseadas nas funcionalidades mais solicitadas
-    4. Conclusões e sugestões de ações
+    Por favor, preencha o seguinte template HTML, mantendo sua estrutura e substituindo apenas o conteúdo entre colchetes []:
     
-    O relatório deve ser formatado em HTML com estilos CSS embutidos para uma boa apresentação no email.
-    Use cores apropriadas para destacar pontos positivos (verde) e negativos (vermelho).
-    Inclua gráficos textuais (ASCII/Unicode) se apropriado.
+    <html>
+    <head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .section { margin-bottom: 30px; }
+        .positive { color: #28a745; }
+        .negative { color: #dc3545; }
+        .highlight { background-color: #fff3cd; padding: 10px; border-radius: 5px; }
+        .metric { font-size: 1.2em; font-weight: bold; }
+    </style>
+    </head>
+    <body>
+    <div class="container">
+        <div class="header">
+            <h1>Relatório Semanal de Feedback - AluMind</h1>
+            <p>Período: {start_date} a {end_date}</p>
+            <p class="metric">Total de Feedbacks: {total_feedbacks}</p>
+        </div>
+        
+        <div class="section">
+            <h2>Análise Geral do Período</h2>
+            <p>[Insira aqui um parágrafo resumindo a análise geral do período, destacando as principais tendências]</p>
+        </div>
+        
+        <div class="section">
+            <h2>Análise de Sentimentos</h2>
+            <div class="highlight">
+                [Insira aqui a análise detalhada dos sentimentos, usando as classes 'positive' e 'negative' para destacar os pontos relevantes]
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Funcionalidades Mais Solicitadas</h2>
+            <ul>
+                [Insira aqui uma lista das funcionalidades mais solicitadas, com breve análise de cada uma]
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>Recomendações</h2>
+            <ol>
+                [Insira aqui 3-5 recomendações baseadas na análise dos dados]
+            </ol>
+        </div>
+        
+        <div class="section">
+            <h2>Conclusão</h2>
+            <p>[Insira aqui um parágrafo de conclusão com as principais ações sugeridas]</p>
+        </div>
+    </div>
+    </body>
+    </html>
     """
     
     prompt = PromptTemplate(
@@ -90,10 +137,10 @@ def generate_weekly_report():
         input_variables=["start_date", "end_date", "total_feedbacks", "sentiment_summary", "feature_requests"]
     )
     
-    llm = OpenAI(
-        model_name="gpt-3.5-turbo",
-        openai_api_key=get_openai_key(),
-        temperature=0.7  # Add some creativity to the report
+    llm = ChatOpenAI(
+        model="gpt-3.5-turbo-0125",
+        api_key=get_openai_key(),
+        temperature=0.7
     )
     
     formatted_prompt = prompt.format(
@@ -104,7 +151,7 @@ def generate_weekly_report():
         feature_requests=json.dumps(report_data['feature_requests'], indent=2, ensure_ascii=False)
     )
     
-    report_html = llm(formatted_prompt)
+    report_html = llm.invoke(formatted_prompt)
     
     return report_html
 

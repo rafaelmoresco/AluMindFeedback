@@ -1,4 +1,4 @@
-from langchain_community.llms import OpenAI
+from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 import json
 from src.utils.config import get_openai_key
@@ -14,7 +14,11 @@ def analyze_feedback_langchain(feedback, id):
     Analise o seguinte feedback do aplicativo AluMind: "{feedback}"
     
     Identifique o sentimento como "POSITIVO" ou "NEGATIVO" e extraia as funcionalidades solicitadas (caso existam), 
-    retornando uma lista de objetos com "code" e "reason". Retorne a resposta no seguinte formato JSON:
+    retornando uma lista de objetos com "code" e "reason".
+    "code" consiste em um código de até duas palavras escrito em letras maiusculas, que representa o que o cliente deseja.
+    "reason" consiste em uma frase curta e direta explicando o que o cliente deseja no código associado.
+    
+    Retorne a resposta no seguinte formato JSON:
     
     {{
       "id": "{id}",
@@ -30,10 +34,13 @@ def analyze_feedback_langchain(feedback, id):
     """
     prompt = PromptTemplate(template=prompt_template, input_variables=["feedback", "id"])
     
-    llm = OpenAI(model_name="gpt-3.5-turbo", openai_api_key=get_openai_key())
+    llm = ChatOpenAI(
+        model="gpt-3.5-turbo-0125",
+        api_key=get_openai_key()
+    )
     
     formatted_prompt = prompt.format(feedback=feedback, id=id)
-    chain_result = llm(formatted_prompt)
+    chain_result = llm.invoke(formatted_prompt)
     
     result = json.loads(chain_result)
     return result
@@ -53,9 +60,12 @@ def spam_filter(feedback: str) -> bool:
     """
     prompt = PromptTemplate(template=prompt_template, input_variables=["feedback"])
     
-    llm = OpenAI(model_name="gpt-3.5-turbo", openai_api_key=get_openai_key())
+    llm = ChatOpenAI(
+        model="gpt-3.5-turbo-0125",
+        api_key=get_openai_key()
+    )
     
-    result = llm(prompt.format(feedback=feedback)).strip()
+    result = llm.invoke(prompt.format(feedback=feedback)).strip()
     
     if result.upper() == "Y":
         return True

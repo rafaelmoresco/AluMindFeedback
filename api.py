@@ -95,6 +95,10 @@ def dashboard():
     
     return render_template("dashboard.html", sentiment_summary=sentiment_summary, feedbacks=feedbacks)
 
+# Graphical feedback endpoint
+@app.route('/submit', methods=['GET'])
+def submit_feedback_page():
+    return render_template("submit_feedback.html", )
 
 if __name__ == '__main__':
     # Start the scheduler in a separate thread
