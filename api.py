@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from dotenv import load_dotenv
 from core_functions import *
+import threading
 
 # Load environment variables
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
@@ -83,4 +84,10 @@ def dashboard():
 
 
 if __name__ == '__main__':
+    # Start the scheduler in a separate thread
+    scheduler_thread = threading.Thread(target=schedule_weekly_report)
+    scheduler_thread.daemon = True
+    scheduler_thread.start()
+    
+    # Run the Flask app
     app.run(debug=True)
