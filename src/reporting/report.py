@@ -31,11 +31,11 @@ def generate_weekly_report():
     
     # Get feature requests summary
     cur.execute("""
-        SELECT rf.feature_code, COUNT(*) as count 
-        FROM requested_features rf
-        JOIN feedbacks f ON rf.feedback_id = f.id 
-        WHERE f.created_at >= %s 
-        GROUP BY rf.feature_code 
+        SELECT feature_code, COUNT(*) as count 
+        FROM feedbacks 
+        WHERE created_at >= %s 
+            AND feature_code IS NOT NULL 
+        GROUP BY feature_code 
         ORDER BY count DESC
     """, (seven_days_ago,))
     feature_data = cur.fetchall()
@@ -71,7 +71,7 @@ def generate_weekly_report():
     Resumo de sentimentos:
     {sentiment_summary}
     
-    Funcionalidades mais solicitadas:
+    Funcionalidades solicitadas:
     {feature_requests}
     
     Por favor, preencha o seguinte template HTML, mantendo sua estrutura e substituindo apenas o conteúdo entre colchetes []:
@@ -112,14 +112,14 @@ def generate_weekly_report():
         <div class="section">
             <h2>Funcionalidades Mais Solicitadas</h2>
             <ul>
-                [Insira aqui uma lista das funcionalidades mais solicitadas, com breve análise de cada uma]
+                [Insira aqui uma lista das funcionalidades mais solicitadas, com breve análise de cada uma. Use os dados de feature_code e suas contagens.]
             </ul>
         </div>
         
         <div class="section">
             <h2>Recomendações</h2>
             <ol>
-                [Insira aqui 3-5 recomendações baseadas na análise dos dados]
+                [Insira aqui 3-5 recomendações baseadas na análise dos dados, focando nas funcionalidades mais solicitadas]
             </ol>
         </div>
         

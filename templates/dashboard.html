@@ -15,32 +15,102 @@
     <a href="/submit" class="btn btn-primary">Submit New Feedback</a>
   </div>
 
-  <!-- Chart Section -->
-  <h2>Feedback Sentiment Summary</h2>
-  <canvas id="sentimentChart" width="400" height="200"></canvas>
+  <!-- Summary Cards Section -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Total Feedbacks</h5>
+          <p class="card-text display-4">{{ total_feedbacks }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Sentiment Distribution</h5>
+          <div class="progress" style="height: 25px;">
+            {% for item in sentiment_summary %}
+            <div class="progress-bar {% if item.sentiment == 'POSITIVO' %}bg-success{% else %}bg-danger{% endif %}" 
+                 role="progressbar" 
+                 style="width: {{ item.percentage }}%"
+                 aria-valuenow="{{ item.percentage }}" 
+                 aria-valuemin="0" 
+                 aria-valuemax="100">
+              {{ item.sentiment }} ({{ item.percentage }}%)
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Sentiment Summary</h5>
+          <canvas id="sentimentChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Top Requested Features</h5>
+          <div class="list-group mt-4">
+            {% for feature in top_features %}
+            <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+              <h5 class="mb-0">{{ feature.feature_code }}</h5>
+              <span class="badge badge-primary badge-pill">{{ feature.count_value }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Table Section -->
-  <h2 class="mt-5">Feedback Details</h2>
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Feedback</th>
-        <th>Sentiment</th>
-        <th>Created At</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for feedback in feedbacks %}
-      <tr>
-        <td>{{ feedback.id }}</td>
-        <td>{{ feedback.feedback }}</td>
-        <td>{{ feedback.sentiment }}</td>
-        <td>{{ feedback.created_at }}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Feedback Details</h5>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Feedback</th>
+              <th>Sentiment</th>
+              <th>Feature Code</th>
+              <th>Feature Reason</th>
+              <th>Created At</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for feedback in feedbacks %}
+            <tr>
+              <td>{{ feedback.id }}</td>
+              <td>{{ feedback.feedback }}</td>
+              <td>
+                {% if feedback.sentiment == 'POSITIVO' %}
+                <span class="badge badge-success">{{ feedback.sentiment }}</span>
+                {% else %}
+                <span class="badge badge-danger">{{ feedback.sentiment }}</span>
+                {% endif %}
+              </td>
+              <td>{{ feedback.feature_code or '-' }}</td>
+              <td>{{ feedback.feature_reason or '-' }}</td>
+              <td>{{ feedback.created_at }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -48,6 +118,7 @@
   const sentimentData = {{ sentiment_summary | tojson }};
   const labels = sentimentData.map(item => item.sentiment);
   const counts = sentimentData.map(item => item.count);
+  const percentages = sentimentData.map(item => item.percentage);
 
   const ctx = document.getElementById('sentimentChart').getContext('2d');
   new Chart(ctx, {
@@ -55,7 +126,7 @@
       data: {
           labels: labels,
           datasets: [{
-              label: '# of Feedbacks',
+              label: 'Feedbacks',
               data: counts,
               backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
               borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
@@ -66,6 +137,15 @@
           scales: {
               y: {
                   beginAtZero: true
+              }
+          },
+          plugins: {
+              tooltip: {
+                  callbacks: {
+                      label: function(context) {
+                          return `Count: ${context.raw} (${percentages[context.dataIndex]}%)`;
+                      }
+                  }
               }
           }
       }

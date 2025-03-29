@@ -50,16 +50,15 @@ def create_feedback():
         
         # Insert main feedback with sentiment
         cur.execute(
-            'INSERT INTO feedbacks (id, feedback, sentiment) VALUES (%s, %s, %s)',
-            (feedback_data['id'], feedback_data['feedback'], analysis_result['sentiment'])
-        )
-        
-        # Insert requested features
-        for feature in analysis_result['requested_features']:
-            cur.execute(
-                'INSERT INTO requested_features (feedback_id, feature_code, reason) VALUES (%s, %s, %s)',
-                (feedback_data['id'], feature['code'], feature['reason'])
+            'INSERT INTO feedbacks (id, feedback, sentiment, feature_code, feature_reason) VALUES (%s, %s, %s, %s, %s)',
+            (
+                feedback_data['id'],
+                feedback_data['feedback'],
+                analysis_result['sentiment'],
+                analysis_result.get('feature_code'),
+                analysis_result.get('feature_reason')
             )
+        )
         
         conn.commit()
         cur.close()
@@ -81,19 +80,59 @@ def dashboard():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=DictCursor)
     
-    # Query to get count of feedbacks by sentiment
-    cur.execute("SELECT sentiment, COUNT(*) as count FROM feedbacks GROUP BY sentiment;")
-    sentiment_data = cur.fetchall()
-    sentiment_summary = [{'sentiment': row['sentiment'], 'count': row['count']} for row in sentiment_data]
+    # Get total feedback count
+    cur.execute("SELECT COUNT(*) as total FROM feedbacks;")
+    total_feedbacks = cur.fetchone()['total']
     
-    # Query to get a detailed list of feedbacks (ordered by creation time)
-    cur.execute("SELECT id, feedback, sentiment, created_at FROM feedbacks ORDER BY created_at DESC;")
+    # Query to get count of feedbacks by sentiment with percentages
+    cur.execute("""
+        SELECT 
+            sentiment, 
+            COUNT(*) as count,
+            CAST((COUNT(*)::float * 100 / NULLIF((SELECT COUNT(*) FROM feedbacks), 0)) AS DECIMAL(5,1)) as percentage
+        FROM feedbacks 
+        GROUP BY sentiment;
+    """)
+    sentiment_data = cur.fetchall()
+    sentiment_summary = [
+        {
+            'sentiment': row['sentiment'],
+            'count': row['count'],
+            'percentage': row['percentage']
+        } for row in sentiment_data
+    ]
+    
+    # Query to get top 3 requested features
+    cur.execute("""
+        SELECT 
+            feature_code,
+            COUNT(*) as count_value
+        FROM feedbacks 
+        WHERE feature_code IS NOT NULL
+        GROUP BY feature_code
+        ORDER BY count_value DESC
+        LIMIT 3;
+    """)
+    top_features = cur.fetchall()
+    
+    # Query to get a detailed list of feedbacks
+    cur.execute("""
+        SELECT id, feedback, sentiment, feature_code, feature_reason, created_at 
+        FROM feedbacks 
+        ORDER BY created_at DESC;
+    """)
     feedbacks = cur.fetchall()
     
     cur.close()
     conn.close()
     
-    return render_template("dashboard.html", sentiment_summary=sentiment_summary, feedbacks=feedbacks)
+    return render_template(
+        "dashboard.html",
+        total_feedbacks=total_feedbacks,
+        sentiment_summary=sentiment_summary,
+        top_features=top_features,
+        feedbacks=feedbacks
+    )
 
 # Graphical feedback endpoint
 @app.route('/submit', methods=['GET'])

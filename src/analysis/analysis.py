@@ -9,28 +9,22 @@ def analyze_feedback_langchain(feedback, id):
     A AluMind é uma startup que oferece um aplicativo focado em bem-estar e saúde mental, 
     proporcionando aos usuários acesso a meditações guiadas, sessões de terapia, e conteúdos educativos sobre saúde mental.
 
-    Você é um especialista em análise de feedback da AluMind e deve analisar o feedback do usuário e retornar uma lista de funcionalidades que o usuário está solicitando.
+    Você é um especialista em análise de feedback da AluMind e deve analisar o feedback do usuário e retornar a funcionalidade mais importante que o usuário está solicitando.
 
     Analise o seguinte feedback do aplicativo AluMind: "{feedback}"
     
-    Identifique o sentimento como "POSITIVO" ou "NEGATIVO" e extraia as funcionalidades solicitadas (caso existam), 
-    retornando uma lista de objetos com "code" e "reason".
-    "code" consiste em um código de até duas palavras escrito em letras maiusculas, que representa o que o cliente deseja.
-    "reason" consiste em uma frase curta e direta explicando o que o cliente deseja no código associado.
+    Identifique o sentimento como "POSITIVO" ou "NEGATIVO" e extraia a funcionalidade mais importante solicitada (caso exista).
+    "feature_code" consiste em um código de até duas palavras escrito em letras maiusculas, que representa o que o cliente mais deseja.
+    "feature_reason" consiste em uma frase curta e direta explicando o que o cliente deseja no código associado.
     
     Retorne a resposta no seguinte formato JSON:
     
     {{
       "id": "{id}",
       "sentiment": "<POSITIVO ou NEGATIVO>",
-      "requested_features": [
-        {{
-          "code": "<Código>",
-          "reason": "<Motivo>"
-        }}
-      ]
+      "feature_code": "<Código ou null se não houver solicitação>",
+      "feature_reason": "<Motivo ou null se não houver solicitação>"
     }}
-    Se não houver funcionalidades solicitadas, "requested_features" deve ser uma lista vazia.
     """
     prompt = PromptTemplate(template=prompt_template, input_variables=["feedback", "id"])
     
