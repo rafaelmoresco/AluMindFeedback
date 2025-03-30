@@ -22,7 +22,7 @@ A AluMind é uma startup que oferece um aplicativo focado em bem-estar e saúde 
    - Envio de um email semanal com um resumo dos feedbacks.
    - Incluir porcentagens de feedbacks positivos e negativos, além das principais funcionalidades pedidas.
 
-4. **Sistema de Filtragem (Bônus)**:
+4. **Sistema de Filtragem**:
    - Implementação de um sistema que assegure que apenas feedbacks legítimos sejam processados.
 
 ### Requisitos Não Funcionais
