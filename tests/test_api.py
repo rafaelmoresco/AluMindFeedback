@@ -34,11 +34,13 @@ def test_create_feedback_endpoint(mock_get_db, mock_spam_filter, mock_analyze, c
     """Test the feedback creation endpoint with valid data."""
     # Configure mocks
     mock_spam_filter.return_value = True
-    mock_analyze.return_value = {
+    expected_analysis = {
+        'id': 'test123',
         'sentiment': 'POSITIVO',
         'feature_code': 'F001',
         'feature_reason': 'User wants more meditation content'
     }
+    mock_analyze.return_value = expected_analysis
     
     # Mock database connection and cursor
     mock_conn = MagicMock()
@@ -61,9 +63,13 @@ def test_create_feedback_endpoint(mock_get_db, mock_spam_filter, mock_analyze, c
     
     # Assertions
     assert response.status_code == 201
-    data = json.loads(response.data)
-    assert 'message' in data
-    assert data['message'] == 'Feedback processed and stored successfully'
+    response_data = json.loads(response.data)
+    
+    # Verify the response contains the analysis result
+    assert response_data == expected_analysis
+    assert response_data['sentiment'] == 'POSITIVO'
+    assert response_data['feature_code'] == 'F001'
+    assert response_data['feature_reason'] == 'User wants more meditation content'
     
     # Verify mocks were called correctly
     mock_spam_filter.assert_called_once_with(test_feedback['feedback'])

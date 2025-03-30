@@ -63,7 +63,7 @@ def create_feedback():
         conn.commit()
         cur.close()
         conn.close()
-        return jsonify({'message': 'Feedback processed and stored successfully'}), 201
+        return jsonify(analysis_result), 201
     except psycopg2.IntegrityError:
         return jsonify({'error': 'Feedback with this ID already exists'}), 409
     except Exception as e:
