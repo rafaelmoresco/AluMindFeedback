@@ -42,28 +42,15 @@ def create_feedback():
         # Analyze feedback using LLM
         if spam_filter(feedback_data['feedback']):
             analysis_result = analyze_feedback_langchain(feedback_data['feedback'], feedback_data['id'])
+            feedback_data['sentiment'] = analysis_result['sentiment']
+            feedback_data['feature_code'] = analysis_result.get('feature_code')
+            feedback_data['feature_reason'] = analysis_result.get('feature_reason')
+            
+            # Insert feedback into the database
+            insert_feedback(feedback_data)
+            return jsonify(analysis_result), 201
         else:
             return jsonify({'error': 'Feedback is spam'}), 400
-        
-        conn = get_db_connection()
-        cur = conn.cursor()
-        
-        # Insert main feedback with sentiment
-        cur.execute(
-            'INSERT INTO feedbacks (id, feedback, sentiment, feature_code, feature_reason) VALUES (%s, %s, %s, %s, %s)',
-            (
-                feedback_data['id'],
-                feedback_data['feedback'],
-                analysis_result['sentiment'],
-                analysis_result.get('feature_code'),
-                analysis_result.get('feature_reason')
-            )
-        )
-        
-        conn.commit()
-        cur.close()
-        conn.close()
-        return jsonify(analysis_result), 201
     except psycopg2.IntegrityError:
         return jsonify({'error': 'Feedback with this ID already exists'}), 409
     except Exception as e:
@@ -77,23 +64,11 @@ def health_check():
 # Dashboard endpoint
 @app.route('/dashboard', methods=['GET'])
 def dashboard():
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=DictCursor)
+    total_feedbacks = get_total_feedback_count()
+    sentiment_data = get_sentiment_data()
+    top_features = get_top_requested_features()
+    feedbacks = get_detailed_feedbacks()
     
-    # Get total feedback count
-    cur.execute("SELECT COUNT(*) as total FROM feedbacks;")
-    total_feedbacks = cur.fetchone()['total']
-    
-    # Query to get count of feedbacks by sentiment with percentages
-    cur.execute("""
-        SELECT 
-            sentiment, 
-            COUNT(*) as count,
-            CAST((COUNT(*)::float * 100 / NULLIF((SELECT COUNT(*) FROM feedbacks), 0)) AS DECIMAL(5,1)) as percentage
-        FROM feedbacks 
-        GROUP BY sentiment;
-    """)
-    sentiment_data = cur.fetchall()
     sentiment_summary = [
         {
             'sentiment': row['sentiment'],
@@ -101,30 +76,6 @@ def dashboard():
             'percentage': row['percentage']
         } for row in sentiment_data
     ]
-    
-    # Query to get top 3 requested features
-    cur.execute("""
-        SELECT 
-            feature_code,
-            COUNT(*) as count_value
-        FROM feedbacks 
-        WHERE feature_code IS NOT NULL
-        GROUP BY feature_code
-        ORDER BY count_value DESC
-        LIMIT 3;
-    """)
-    top_features = cur.fetchall()
-    
-    # Query to get a detailed list of feedbacks
-    cur.execute("""
-        SELECT id, feedback, sentiment, feature_code, feature_reason, created_at 
-        FROM feedbacks 
-        ORDER BY created_at DESC;
-    """)
-    feedbacks = cur.fetchall()
-    
-    cur.close()
-    conn.close()
     
     return render_template(
         "dashboard.html",

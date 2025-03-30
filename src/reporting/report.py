@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from src.database.database import get_db_connection
+from src.database.database import get_db_connection, get_total_feedback_count, get_sentiment_data, get_top_requested_features
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from src.utils.config import get_openai_key, get_openai_model
@@ -21,45 +21,13 @@ def generate_weekly_report():
     seven_days_ago = datetime.now() - timedelta(days=7)
     
     # Get sentiment summary
-    cur.execute("""
-        WITH sentiment_counts AS (
-            SELECT COUNT(*) as total_decisive
-            FROM feedbacks 
-            WHERE created_at >= %s
-            AND sentiment IN ('POSITIVO', 'NEGATIVO')
-        )
-        SELECT 
-            sentiment, 
-            COUNT(*) as count,
-            CASE 
-                WHEN sentiment IN ('POSITIVO', 'NEGATIVO') THEN
-                    CAST((COUNT(*)::float * 100 / NULLIF((SELECT total_decisive FROM sentiment_counts), 0)) AS DECIMAL(5,1))
-                ELSE NULL
-            END as percentage
-        FROM feedbacks 
-        WHERE created_at >= %s
-        GROUP BY sentiment
-    """, (seven_days_ago, seven_days_ago))
-    sentiment_data = cur.fetchall()
+    sentiment_data = get_sentiment_data()  # Use the new function
     
     # Get feature requests summary
-    cur.execute("""
-        SELECT feature_code, COUNT(*) as count 
-        FROM feedbacks 
-        WHERE created_at >= %s 
-            AND feature_code IS NOT NULL 
-        GROUP BY feature_code 
-        ORDER BY count DESC
-    """, (seven_days_ago,))
-    feature_data = cur.fetchall()
+    feature_data = get_top_requested_features()  # Use the new function
     
     # Get total feedback count
-    cur.execute("""
-        SELECT COUNT(*) as total
-        FROM feedbacks
-        WHERE created_at >= %s
-    """, (seven_days_ago,))
-    total_feedbacks = cur.fetchone()['total']
+    total_feedbacks = get_total_feedback_count()  # Use the new function
     
     # Prepare data for LLM
     sentiment_data_serializable = []
