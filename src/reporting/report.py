@@ -62,12 +62,31 @@ def generate_weekly_report():
     total_feedbacks = cur.fetchone()['total']
     
     # Prepare data for LLM
+    sentiment_data_serializable = []
+    for row in sentiment_data:
+        row_dict = dict(row)
+        # Convert Decimal to float for the percentage and count
+        if 'percentage' in row_dict and row_dict['percentage'] is not None:
+            row_dict['percentage'] = float(row_dict['percentage'])
+        if 'count' in row_dict:
+            row_dict['count'] = float(row_dict['count'])
+        sentiment_data_serializable.append(row_dict)
+    
+    feature_data_serializable = []
+    for row in feature_data:
+        row_dict = dict(row)
+        # Convert count to float
+        if 'count' in row_dict:
+            row_dict['count'] = float(row_dict['count'])
+        feature_data_serializable.append(row_dict)
+    
+    # Prepare data for LLM with serializable values
     report_data = {
         'start_date': seven_days_ago.date().isoformat(),
         'end_date': datetime.now().date().isoformat(),
-        'total_feedbacks': total_feedbacks,
-        'sentiment_summary': [dict(row) for row in sentiment_data],
-        'feature_requests': [dict(row) for row in feature_data]
+        'total_feedbacks': float(total_feedbacks),  # Convert to float
+        'sentiment_summary': sentiment_data_serializable,
+        'feature_requests': feature_data_serializable
     }
     
     cur.close()
@@ -99,15 +118,43 @@ def generate_weekly_report():
     <html>
     <head>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-        .section { margin-bottom: 30px; }
-        .positive { color: #28a745; }
-        .negative { color: #dc3545; }
-        .neutral { color: #6c757d; }
-        .highlight { background-color: #fff3cd; padding: 10px; border-radius: 5px; }
-        .metric { font-size: 1.2em; font-weight: bold; }
+        body {{
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }}
+        .container {{
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }}
+        .header {{
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }}
+        .section {{
+            margin-bottom: 30px;
+        }}
+        .positive {{
+            color: #28a745;
+        }}
+        .negative {{
+            color: #dc3545;
+        }}
+        .neutral {{
+            color: #6c757d;
+        }}
+        .highlight {{
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+        }}
+        .metric {{
+            font-size: 1.2em;
+            font-weight: bold;
+        }}
     </style>
     </head>
     <body>
