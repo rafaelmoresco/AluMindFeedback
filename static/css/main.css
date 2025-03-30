@@ -1,0 +1,35 @@
+/* Dashboard styles */
+.sentiment-badge.inconclusive {
+    background-color: #6c757d;  /* Grey color for inconclusive */
+}
+
+/* Common styles for both pages */
+.container {
+    margin-top: 3rem;
+}
+
+/* Dashboard specific layout */
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+.card {
+    margin-bottom: 1.5rem;
+}
+
+.progress {
+    height: 25px;
+}
+
+.table-responsive {
+    margin-top: 1rem;
+}
+
+/* Form specific styles */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+#responseMessage {
+    margin-top: 1rem;
+}

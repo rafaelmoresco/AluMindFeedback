@@ -7,6 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Optional: Bootstrap CSS for better styling -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
   <style>
     .sentiment-badge.inconclusive {
       background-color: #6c757d;  /* Grey color for inconclusive */
@@ -130,58 +131,9 @@
 </div>
 
 <script>
-  // Pass the sentiment data from Flask to JavaScript
-  const sentimentData = {{ sentiment_summary | tojson }};
-  const labels = sentimentData.map(item => item.sentiment);
-  const counts = sentimentData.map(item => item.count);
-  const percentages = sentimentData.map(item => item.percentage);
-
-  const ctx = document.getElementById('sentimentChart').getContext('2d');
-  new Chart(ctx, {
-      type: 'bar',
-      data: {
-          labels: labels,
-          datasets: [{
-              label: 'Feedbacks',
-              data: counts,
-              backgroundColor: labels.map(label => {
-                  switch(label) {
-                      case 'POSITIVO': return 'rgba(75, 192, 192, 0.2)';
-                      case 'NEGATIVO': return 'rgba(255, 99, 132, 0.2)';
-                      default: return 'rgba(108, 117, 125, 0.2)';  // Grey for INCONCLUSIVO
-                  }
-              }),
-              borderColor: labels.map(label => {
-                  switch(label) {
-                      case 'POSITIVO': return 'rgba(75, 192, 192, 1)';
-                      case 'NEGATIVO': return 'rgba(255, 99, 132, 1)';
-                      default: return 'rgba(108, 117, 125, 1)';  // Grey for INCONCLUSIVO
-                  }
-              }),
-              borderWidth: 1
-          }]
-      },
-      options: {
-          scales: {
-              y: {
-                  beginAtZero: true
-              }
-          },
-          plugins: {
-              tooltip: {
-                  callbacks: {
-                      label: function(context) {
-                          const percentage = percentages[context.dataIndex];
-                          if (percentage !== null) {
-                              return `Count: ${context.raw} (${percentage}%)`;
-                          }
-                          return `Count: ${context.raw}`;
-                      }
-                  }
-              }
-          }
-      }
-  });
+  // Pass the data to the global scope for our scripts
+  window.sentimentData = {{ sentiment_summary | tojson }};
 </script>
+<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Submit Feedback</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
     <div class="container mt-5">
@@ -32,45 +33,6 @@
         </div>
     </div>
 
-    <script>
-        document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const feedbackData = {
-                id: document.getElementById('feedbackId').value,
-                feedback: document.getElementById('feedbackText').value
-            };
-            
-            try {
-                const response = await fetch('/feedbacks', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(feedbackData)
-                });
-                
-                const result = await response.json();
-                const messageDiv = document.getElementById('responseMessage');
-                
-                if (response.ok) {
-                    messageDiv.className = 'alert alert-success';
-                    messageDiv.textContent = result.message;
-                    document.getElementById('feedbackForm').reset();
-                } else {
-                    messageDiv.className = 'alert alert-danger';
-                    messageDiv.textContent = result.error;
-                }
-                
-                messageDiv.style.display = 'block';
-            } catch (error) {
-                console.error('Error:', error);
-                const messageDiv = document.getElementById('responseMessage');
-                messageDiv.className = 'alert alert-danger';
-                messageDiv.textContent = 'An error occurred while submitting feedback';
-                messageDiv.style.display = 'block';
-            }
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </body>
 </html>
