@@ -91,11 +91,15 @@ A AluMind é uma startup que oferece um aplicativo focado em bem-estar e saúde 
 - **Descrição**: Retorna um relatório dos feedbacks recebidos, incluindo contagem total, distribuição de sentimentos e funcionalidades mais pedidas.
 - **Resposta**: Renderiza a página HTML com os dados do dashboard.
 
+![Dashboard](dashboard.png)
+
 ### 4. Página de Submissão de Feedback
 
 - **Endpoint**: `/submit`
 - **Método**: `GET`
 - **Descrição**: Renderiza a página para submissão de novos feedbacks.
+
+![Tela de Envio de Feedback](enviar.png)
 
 ## Detalhes da Implementação
 

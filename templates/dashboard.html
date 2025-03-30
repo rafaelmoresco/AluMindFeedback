@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Feedback Dashboard</title>
+  <title>Painel de Feedback</title>
   <!-- Load Chart.js from a CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Optional: Bootstrap CSS for better styling -->
@@ -17,8 +17,8 @@
 <body>
 <div class="container mt-5">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Feedback Dashboard</h1>
-    <a href="/submit" class="btn btn-primary">Submit New Feedback</a>
+    <h1>Painel de Feedback</h1>
+    <a href="/submit" class="btn btn-primary">Enviar Novo Feedback</a>
   </div>
 
   <!-- Summary Cards Section -->
@@ -26,7 +26,7 @@
     <div class="col-md-4">
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">Total Feedbacks</h5>
+          <h5 class="card-title">Feedbacks Totais</h5>
           <p class="card-text display-4">{{ total_feedbacks }}</p>
         </div>
       </div>
@@ -34,7 +34,7 @@
     <div class="col-md-8">
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">Sentiment Distribution</h5>
+          <h5 class="card-title">Distribuição de Sentimentos</h5>
           <div class="progress" style="height: 25px;">
             {% for item in sentiment_summary %}
             <div class="progress-bar 
@@ -51,7 +51,7 @@
             {% endfor %}
           </div>
           <small class="text-muted mt-2 d-block">
-            Distribution of all feedback sentiments including inconclusive responses
+            Distribuição de todos os sentimentos de feedback incluindo respostas inconclusivas
           </small>
         </div>
       </div>
@@ -63,10 +63,10 @@
     <div class="col-md-6">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="card-title">Sentiment Summary</h5>
+          <h5 class="card-title">Sumário de Sentimentos</h5>
           <canvas id="sentimentChart"></canvas>
           <small class="text-muted mt-2 d-block">
-            Total count of feedbacks by sentiment type
+            Conta total de feedback por tipo de sentimento
           </small>
         </div>
       </div>
@@ -74,7 +74,7 @@
     <div class="col-md-6">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="card-title">Top Requested Features</h5>
+          <h5 class="card-title">Features Mais Pedidas</h5>
           <div class="list-group mt-4">
             {% for feature in top_features %}
             <div class="list-group-item d-flex justify-content-between align-items-center py-3">
@@ -91,17 +91,17 @@
   <!-- Table Section -->
   <div class="card">
     <div class="card-body">
-      <h5 class="card-title">Feedback Details</h5>
+      <h5 class="card-title">Detalhes dos Feedbacks</h5>
       <div class="table-responsive">
         <table class="table table-striped">
           <thead>
             <tr>
               <th>ID</th>
               <th>Feedback</th>
-              <th>Sentiment</th>
+              <th>Sentimento</th>
               <th>Feature Code</th>
               <th>Feature Reason</th>
-              <th>Created At</th>
+              <th>Criado Em</th>
             </tr>
           </thead>
           <tbody>
