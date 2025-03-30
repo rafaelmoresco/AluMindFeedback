@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from src.database.database import get_db_connection, get_total_feedback_count, get_sentiment_data, get_top_requested_features
+from src.database.database import get_db_connection, get_total_feedback_count, get_sentiment_data, get_top_requested_features, get_feature_reason
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from src.utils.config import get_openai_key, get_openai_model
@@ -40,12 +40,17 @@ def generate_weekly_report():
             row_dict['count'] = float(row_dict['count'])
         sentiment_data_serializable.append(row_dict)
     
+    # Prepare feature requests with both code and reason
     feature_data_serializable = []
     for row in feature_data:
         row_dict = dict(row)
         # Convert count to float
-        if 'count' in row_dict:
-            row_dict['count'] = float(row_dict['count'])
+        if 'count_value' in row_dict:
+            row_dict['count'] = float(row_dict['count_value'])
+        
+        # Fetch the feature reason for the feature_code
+        row_dict['feature_reason'] = get_feature_reason(row_dict['feature_code'])
+        
         feature_data_serializable.append(row_dict)
     
     # Prepare data for LLM with serializable values
@@ -218,6 +223,7 @@ def schedule_weekly_report():
     def send_report():
         report_html = generate_weekly_report()
         send_email_report(report_html)
+        print(report_html)
     
     # Schedule the report to run every Monday at 9:00 AM
     schedule.every().monday.at("09:00").do(send_report)

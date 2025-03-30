@@ -121,3 +121,20 @@ def get_detailed_feedbacks():
     cur.close()
     conn.close()
     return feedbacks
+
+# Function to get feature reason by feature code
+def get_feature_reason(feature_code):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=DictCursor)
+    
+    cur.execute("""
+        SELECT feature_reason 
+        FROM feedbacks 
+        WHERE feature_code = %s 
+        LIMIT 1;
+    """, (feature_code,))
+    feature_reason_row = cur.fetchone()
+    
+    cur.close()
+    conn.close()
+    return feature_reason_row['feature_reason'] if feature_reason_row else None
