@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from src.database.database import get_db_connection
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
-from src.utils.config import get_openai_key
+from src.utils.config import get_openai_key, get_openai_model
 from psycopg2.extras import DictCursor
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -206,7 +206,7 @@ def generate_weekly_report():
     )
     
     llm = ChatOpenAI(
-        model="gpt-3.5-turbo-0125",
+        model=get_openai_model(),
         api_key=get_openai_key(),
         temperature=0.7
     )

@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 import json
-from src.utils.config import get_openai_key
+from src.utils.config import get_openai_key, get_openai_model
 
 # Function to analyze feedback using LangChain
 def analyze_feedback_langchain(feedback, id):
@@ -29,7 +29,7 @@ def analyze_feedback_langchain(feedback, id):
     prompt = PromptTemplate(template=prompt_template, input_variables=["feedback", "id"])
     
     llm = ChatOpenAI(
-        model="gpt-3.5-turbo-0125",
+        model=get_openai_model(),
         api_key=get_openai_key()
     )
     
@@ -56,7 +56,7 @@ def spam_filter(feedback: str) -> bool:
     prompt = PromptTemplate(template=prompt_template, input_variables=["feedback"])
     
     llm = ChatOpenAI(
-        model="gpt-3.5-turbo-0125",
+        model=get_openai_model(),
         api_key=get_openai_key()
     )
     

@@ -6,3 +6,6 @@ def load_config():
 
 def get_openai_key():
     return os.getenv("OPENAI_API_KEY")
+
+def get_openai_model():
+    return os.getenv("OPENAI_MODEL", "gpt-3.5-turbo-0125")
